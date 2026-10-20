@@ -1,0 +1,38 @@
+# SVERA 공식 웹사이트 배포
+# 저장소에 site.zip(사이트 파일 묶음)을 올리면 압축을 풀어 GitHub Pages로 배포합니다.
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip site
+        run: |
+          rm -rf _site
+          mkdir _site
+          unzip -q -o site.zip -d _site
+          test -f _site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
